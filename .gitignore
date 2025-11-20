@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables de entorno (SEGURIDAD)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
