@@ -142,7 +142,7 @@ function App() {
             AGREGAR
           </Button>
         </Stack>
-      </Paper>
+      </Paper>    
 
       {selectionModel.length > 0 && (
         <Button variant="contained" color="error" style={{ marginBottom: '10px' }} onClick={eliminarRegistros}>
