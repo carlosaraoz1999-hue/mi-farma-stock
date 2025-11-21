@@ -36,7 +36,7 @@ const Login = ({ onSwitchToRegister }) => {
   return (
     <Container maxWidth="xs" style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
       <Paper elevation={3} style={{ padding: '30px', width: '100%', borderRadius: '10px' }}>
-        <Typography variant="h4" align="center" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>Mi Farma</Typography>
+        <Typography variant="h4" align="center" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>Login</Typography>
         <Typography variant="subtitle1" align="center" color="textSecondary" mb={3}>Iniciar Sesión</Typography>
 
         <form onSubmit={handleSubmit}>

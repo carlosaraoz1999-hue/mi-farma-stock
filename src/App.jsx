@@ -94,7 +94,7 @@ function App() {
     <Container maxWidth="md" style={{ marginTop: '40px' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
         <Typography variant="h4" style={{ color: '#1976d2', fontWeight: 'bold' }}>
-          👕 Mi Farma Stock
+          👕 Registro de Stock
         </Typography>
         <Stack direction="row" spacing={2} alignItems="center">
           {/* Etiqueta para saber qué rol tengo */}

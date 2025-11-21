@@ -28,7 +28,6 @@ const Register = ({ onSwitchToLogin }) => {
 
       if (data.user) {
         setMessage("¡Usuario creado! Revisa tu correo (o inicia sesión si desactivaste la confirmación).");
-        // AQUÍ ESTÁ LA MAGIA: Limpiamos los campos
         setFormData({ email: '', password: '' });
       }
     } catch (error) {
