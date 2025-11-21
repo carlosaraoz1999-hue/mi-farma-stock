@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from './supabaseClient'; 
+import { supabase } from './supabaseClient';
+import { Container, Paper, TextField, Button, Typography, Alert, Box } from '@mui/material';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const Login = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,7 +20,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(null); // Limpiamos errores previos
+    setErrorMessage(null);
+    setIsLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -27,59 +30,91 @@ const Login = () => {
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        setErrorMessage("Email o contraseña incorrectos");
         console.error('Error login:', error.message);
-        return;
-      }
-
-      if (data.user) {
-        console.log('Usuario logueado:', data.user);
-        alert('¡Bienvenido! Login exitoso.');
+      } else if (data.user) {
+        // El login fue exitoso, App.jsx detectará el cambio automáticamente
+        console.log('Login correcto');
       }
 
     } catch (error) {
       setErrorMessage('Ocurrió un error inesperado.');
-      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit}>
-        <h2>Iniciar Sesión</h2>
+    // Container centra todo vertical y horizontalmente
+    <Container maxWidth="xs" style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      backgroundColor: '#f5f5f5' // Un fondo gris suave
+    }}>
+      
+      <Paper elevation={3} style={{ padding: '30px', width: '100%', borderRadius: '10px' }}>
         
-        {/* Mensaje de error visual */}
-        {errorMessage && (
-          <div style={{ color: 'red', marginBottom: '10px' }}>
-            {errorMessage}
-          </div>
-        )}
+        <Typography variant="h4" align="center" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>
+          Mi Farma
+        </Typography>
+        
+        <Typography variant="subtitle1" align="center" color="textSecondary" style={{ marginBottom: '20px' }}>
+          Iniciar Sesión
+        </Typography>
 
-        <div>
-          <label>Email:</label>
-          <input 
-            type="email" 
-            name="email" 
-            value={formData.email} 
-            onChange={handleChange} 
-            required 
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          
+          {/* Mensaje de error (Alerta roja) */}
+          {errorMessage && (
+            <Alert severity="error" style={{ marginBottom: '20px' }}>
+              {errorMessage}
+            </Alert>
+          )}
 
-        <div>
-          <label>Contraseña:</label>
-          <input 
-            type="password" 
-            name="password" 
-            value={formData.password} 
-            onChange={handleChange} 
-            required 
-          />
-        </div>
+          <Box mb={2}>
+            <TextField
+              fullWidth
+              label="Correo Electrónico"
+              name="email"
+              type="email"
+              variant="outlined"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </Box>
 
-        <button type="submit">Ingresar</button>
-      </form>
-    </div>
+          <Box mb={3}>
+            <TextField
+              fullWidth
+              label="Contraseña"
+              name="password"
+              type="password"
+              variant="outlined"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+            />
+          </Box>
+
+          <Button 
+            type="submit" 
+            fullWidth 
+            variant="contained" 
+            color="primary" 
+            size="large"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Cargando...' : 'Ingresar'}
+          </Button>
+
+        </form>
+      </Paper>
+    </Container>
   );
 };
 

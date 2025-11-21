@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
-import { Container, Typography, Paper, TextField, Button, Stack, Alert, Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+import Login from './Login' // <--- 1. Importamos el componente Login
+import { Container, Typography, Paper, TextField, Button, Stack, Select, MenuItem, FormControl, InputLabel, Box } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
+import LogoutIcon from '@mui/icons-material/Logout'; // (Opcional: icono si quieres instalar iconos, si no, se verá solo texto)
 
-// 1. Columnas afuera (Siempre)
+// --- DEFINICIÓN DE COLUMNAS (Igual que antes) ---
 const columns = [
   { field: 'id', headerName: 'ID', width: 70 },
   { field: 'prenda', headerName: 'Prenda', width: 200 },
@@ -12,17 +14,13 @@ const columns = [
     headerName: 'Stock', 
     width: 130, 
     type: 'number',
-   editable: true 
+    editable: true 
   },
 ]
 const LISTA_TALLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Unico']
 
-// Función que recibe la fila NUEVA (con el cambio) y la VIEJA
 const processRowUpdate = async (newRow, oldRow) => {
-    // 1. Si no hubo cambios, no hacemos nada
     if (JSON.stringify(newRow) === JSON.stringify(oldRow)) return oldRow
-
-    // 2. Guardamos en Supabase
     const { error } = await supabase
       .from('stock_ropa')
       .update({ 
@@ -30,30 +28,51 @@ const processRowUpdate = async (newRow, oldRow) => {
         talle: newRow.talle,
         cantidad: newRow.cantidad
       })
-      .eq('id', newRow.id) // Buscamos por ID
+      .eq('id', newRow.id)
 
     if (error) {
       alert("Error al actualizar: " + error.message)
-      return oldRow // Si falla, revertimos el cambio visualmente
+      return oldRow
     }
-    
-    console.log("Guardado:", newRow)
-    return newRow // Si sale bien, confirmamos el cambio en la tabla
-  }
+    return newRow
+}
 
 function App() {
+  // --- 1. ESTADOS DE AUTENTICACIÓN ---
+  const [session, setSession] = useState(null)
+
+  // --- 2. ESTADOS DE LA APP DE STOCK ---
   const [rows, setRows] = useState([])
   const [selectionModel, setSelectionModel] = useState([]) 
-
-  // Formulario
   const [nuevaPrenda, setNuevaPrenda] = useState("")
   const [nuevoTalle, setNuevoTalle] = useState("")
   const [nuevaCantidad, setNuevaCantidad] = useState("")
 
+  // --- 3. EFECTO PARA CONTROLAR LA SESIÓN (LOGIN) ---
   useEffect(() => {
-    obtenerStock()
+    // Verificar sesión actual al cargar
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    // Escuchar cambios (login/logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
+  // --- 4. EFECTO PARA CARGAR DATOS (Solo si hay sesión) ---
+  useEffect(() => {
+    if (session) {
+      obtenerStock()
+    }
+  }, [session]) // Se ejecuta cuando cambia la sesión
+
+  // --- FUNCIONES CRUD ---
   async function obtenerStock() {
     const { data, error } = await supabase
       .from('stock_ropa')
@@ -62,8 +81,6 @@ function App() {
     
     if (error) console.log(error)
     else setRows(data || [])
-
-  
   }
 
   async function agregarRegistro() {
@@ -96,22 +113,41 @@ function App() {
     }
   }
 
+  // --- 5. RENDERIZADO CONDICIONAL ---
+  
+  // Si NO hay sesión, mostramos el componente LOGIN
+  if (!session) {
+    return <Login />
+  }
+
+  // Si SÍ hay sesión, mostramos la APP DE STOCK
   return (
     <Container maxWidth="md" style={{ marginTop: '40px' }}>
       
-      <Typography variant="h4" gutterBottom style={{ color: '#1976d2', fontWeight: 'bold' }}>
-        👕 Mi Farma Stock
-      </Typography>
+      {/* CABECERA CON TÍTULO Y BOTÓN DE SALIR */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" style={{ color: '#1976d2', fontWeight: 'bold' }}>
+          👕 Mi Farma Stock
+        </Typography>
+        
+        <Button 
+          variant="outlined" 
+          color="secondary" 
+          onClick={() => supabase.auth.signOut()}
+        >
+          Cerrar Sesión
+        </Button>
+      </Stack>
 
       <Paper elevation={3} style={{ padding: '20px', marginBottom: '20px' }}>
-        <Stack direction="row" spacing={2} alingItems="center">
+        <Stack direction="row" spacing={2} alignItems="center">
           <TextField 
             label="Prenda" 
             variant="outlined" 
             size="small"
             value={nuevaPrenda}
             onChange={(e) => setNuevaPrenda(e.target.value)} 
-            style={{ flex: 2 }} // Ocupa más espacio (el doble que los otros)
+            style={{ flex: 2 }} 
           />
           <FormControl size="small" style={{ flex: 1, minWidth: 120 }}>
             <InputLabel>Talle</InputLabel>
@@ -132,12 +168,12 @@ function App() {
             type="number"
             value={nuevaCantidad}
             onChange={(e) => setNuevaCantidad(e.target.value)}
-            style={{ flex: 1 }} // Ocupa 1 unidad de espacio
+            style={{ flex: 1 }} 
           />
           <Button 
             variant="contained" 
             onClick={agregarRegistro}
-            style={{ height: '40px' }} // Forzamos la altura para que coincida con los inputs
+            style={{ height: '40px' }} 
           >
             AGREGAR
           </Button>
@@ -159,7 +195,7 @@ function App() {
           onRowSelectionModelChange={(ids) => setSelectionModel(ids)}
           rowSelectionModel={selectionModel}
           processRowUpdate={processRowUpdate}
-          onprocessRowUpdateError={(error) => alert(error)}
+          onProcessRowUpdateError={(error) => alert(error)}
         />
       </Paper>
 
